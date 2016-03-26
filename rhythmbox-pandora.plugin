@@ -1,0 +1,9 @@
+[Plugin]
+Loader=python3
+Module=rhythmbox-pandora
+IAge=2
+Name=Pandora Radio plugin for Rhythmox
+Description=A python test plugin
+Authors=Your Name <your email address>
+Copyright=Copyright © 2007 Your name
+Website=http://some.website/
