@@ -3,18 +3,32 @@ from gi.repository import GObject, Peas
 from .PandoraSource import PandoraSource
 from .PandoraAccount import PandoraAccount
 from pithos import pandora
-from pithos.pandora.data import client_keys as pandora_client_keys
+
+from concurrent.futures import ThreadPoolExecutor, wait
 
 class PandoraPlugin(GObject.Object, Peas.Activatable):
     object = GObject.property(type=GObject.Object)
 
     def __init__(self):
         super(PandoraPlugin, self).__init__()
+        self.worker = ThreadPoolExecutor(max_workers=1)
         self.pandora_account = PandoraAccount.get()
+        self.pandora = self.worker.submit(self.connect, self.pandora_account)
+
+    '''
+    Connect to the Pandora radio service using the credentials retrieved from
+    account.
+    '''
+    # if we have more wrapper code of this sort, we are probably better off
+    # moving this function to an own module
+    def connect(self, account):
+        from pithos.pandora.data import client_keys
         
-        username, password = self.pandora_account.get_credentials()
-        self.pandora = pandora.Pandora()
-        self.pandora.connect(pandora_client_keys['android-generic'], username, password)
+        p = pandora.Pandora()
+        username, password = account.get_credentials()
+        p.connect(client_keys['android-generic'],
+                             username, password)
+        return p
 
     def do_activate(self):
         shell = self.object

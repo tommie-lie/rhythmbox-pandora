@@ -15,10 +15,16 @@ class PandoraSource(RB.DisplayPage):
         self.props.shell.append_display_page(self, group)
         
         self.stations = []
-        for station in self.props.plugin.pandora.stations:
+        # only add radio stations after the connection was established
+        self.props.plugin.pandora.add_done_callback(self.add_radio_station_sources)
+        
+    def add_radio_station_sources(self, *ignore):
+        for station in self.props.plugin.pandora.result().stations:
             self.stations.append(PandoraRadioStationSource(parent=self,
                                                            station=station,
-                                                           **kwargs))
+                                                           plugin=self.props.plugin,
+                                                           shell=self.props.shell
+                                                           ))
 
 
 class PandoraRadioStationSource(RB.StreamingSource):
