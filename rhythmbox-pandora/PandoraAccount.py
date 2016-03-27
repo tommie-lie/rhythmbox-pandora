@@ -11,31 +11,27 @@ class PandoraAccount(object):
     instance = None
     
     class __PandoraAccountImpl(object):
-        def __init__(self):
-            def on_password_lookup(source, result):
-                __secret = Secret.password_lookup_finish(result)
-            
-            self.__secret = None
-            secret_service = Secret.password_lookup(PandoraAccount.SECRET_SCHEMA, {}, None,
-                                                    on_password_lookup)
-        
         def get_credentials(self):
+            if not hasattr(self, "__secret"):
+                self.__secret = Secret.password_lookup_sync(PandoraAccount.SECRET_SCHEMA,
+                                                            {},
+                                                            None)
+
             if self.__secret:
                 return tuple(self.__secret.split("\n"))
-            return None, None
+            else:
+                return None, None
+                
         
         def set_credentials(self, username, password):
-            def on_password_store(source, result):
-                Secret.password_store_finish(result)
-            
             secret = "\n".join([username, password])
             if secret == self.__secret:
                 # Credentials not changed, nothing to do
                 return
             self.__secret = secret
-            Secret.password_store(PandoraAccount.SECRET_SCHEMA, {}, Secret.COLLECTION_DEFAULT,
-                                  "Rhythmbox: Pandora Radio account information",
-                                  self.__secret, None, on_password_store)
+            Secret.password_store_sync(PandoraAccount.SECRET_SCHEMA, {}, Secret.COLLECTION_DEFAULT,
+                                       "Rhythmbox: Pandora Radio account information",
+                                       self.__secret, None, on_password_store)
     
     @classmethod
     def get(cls):
