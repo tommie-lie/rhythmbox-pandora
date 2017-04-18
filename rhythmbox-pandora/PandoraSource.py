@@ -1,4 +1,7 @@
-from gi.repository import GObject, RB
+from gi.repository import GObject, RB, GLib
+
+from . import util
+
 
 class PandoraEntryType(RB.RhythmDBEntryType):
     NAME = "pandora"
@@ -18,7 +21,7 @@ class PandoraSource(RB.DisplayPage):
         
         self.stations = []
         # only add radio stations after the connection was established
-        self.props.plugin.pandora.add_done_callback(self.add_radio_station_sources)
+        self.props.plugin.pandora.add_done_callback(util.from_main_thread_callback(self.add_radio_station_sources))
         
     def add_radio_station_sources(self, *ignore):
         for station in self.props.plugin.pandora.result().stations:
