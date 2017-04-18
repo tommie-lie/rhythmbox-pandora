@@ -30,7 +30,7 @@ class PandoraSource(RB.DisplayPage):
 
 
 class PandoraRadioStationSource(RB.StreamingSource):
-    def __init__(self, parent, station, shell, **kwargs):
+    def __init__(self, *, parent, station, shell, **kwargs):
         if not parent:
             raise ValueError("parent argument must not be null")
         if not station:
