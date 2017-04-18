@@ -3,7 +3,9 @@ from gi.repository import GObject, RB
 class PandoraEntryType(RB.RhythmDBEntryType):
     NAME = "pandora"
     def __init__(self):
-        super(PandoraEntryType, self).__init__(name=PandoraEntryType.NAME)
+        super(PandoraEntryType, self).__init__(name=PandoraEntryType.NAME,
+                                               save_to_disk=False,
+                                               category=RB.RhythmDBEntryCategory.STREAM)
 
 
 class PandoraSource(RB.DisplayPage):
