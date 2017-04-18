@@ -45,4 +45,21 @@ class PandoraRadioStationSource(RB.StreamingSource):
                                                         shell=shell,
                                                         **kwargs)
         
+        self.query_model = RB.RhythmDBQueryModel.new_empty(self.props.shell.props.db)
+        self.props.query_model = self.query_model
+        
+        self.entry_view = RB.EntryView(db=self.props.shell.props.db,
+                                       shell_player=self.props.shell.props.shell_player,
+                                       is_drag_source=False,
+                                       is_drag_dest=False)
+        self.entry_view.append_column(RB.EntryViewColumn.TITLE, True)
+        self.entry_view.append_column(RB.EntryViewColumn.ARTIST, True)
+        self.entry_view.append_column(RB.EntryViewColumn.ALBUM, True)
+        self.entry_view.set_model(self.props.query_model)
+        self.entry_view.show_all()
+        self.pack_start(self.entry_view, expand=True, fill=True, padding=0)        
+
         self.props.shell.append_display_page(self, parent)
+    
+    def do_get_entry_view(self):
+        return self.entry_view
