@@ -35,6 +35,7 @@ class PandoraPlugin(GObject.Object, Peas.Activatable):
         self.emit("connected")
 
     def do_activate(self):
+        PandoraAccount.get().connect("credentials_changed", self.on_credentials_changed)
         self.source = PandoraSource(shell=self.object,
                                     plugin=self)
         self.worker.submit(self.connect_pandora)
@@ -42,3 +43,9 @@ class PandoraPlugin(GObject.Object, Peas.Activatable):
     def do_deactivate(self):
         self.source.delete_thyself()
         self.source = None
+    
+    def on_credentials_changed(self, account):
+        self.source.delete_thyself()
+        self.source = PandoraSource(shell=self.object,
+                                    plugin=self)
+        self.worker.submit(self.connect_pandora)
