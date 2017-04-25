@@ -32,6 +32,25 @@ class PandoraSource(RB.DisplayPage):
                                                            ))
 
 
+class PandoraPlayOrder(RB.PlayOrder):
+    def __init__(self, *args, **kwargs):
+        super(PandoraPlayOrder,self).__init__(*args, **kwargs)
+    
+    def do_get_previous(self):
+        return None
+    
+    def do_get_next(self):
+        query_model = self.get_query_model()
+        playing_entry = self.get_playing_entry()
+        if playing_entry:
+            return query_model.get_next_from_entry(playing_entry)
+        else:
+            first = query_model.get_iter_first()
+            if first:
+                return query_model.iter_to_entry(first)
+        return None
+
+
 class PandoraRadioStationSource(RB.StreamingSource):
     def __init__(self, *, parent, station, shell, **kwargs):
         if not parent:
@@ -50,6 +69,7 @@ class PandoraRadioStationSource(RB.StreamingSource):
                                                         shell=shell,
                                                         **kwargs)
         
+        self._play_order = PandoraPlayOrder(player=self.props.shell.props.shell_player)
         self.query_model = RB.RhythmDBQueryModel.new_empty(self.props.shell.props.db)
         self.props.query_model = self.query_model
         
@@ -65,6 +85,10 @@ class PandoraRadioStationSource(RB.StreamingSource):
         self.pack_start(self.entry_view, expand=True, fill=True, padding=0)        
 
         self.props.shell.append_display_page(self, parent)
+    
+    @GObject.Property(type=RB.PlayOrder)
+    def play_order(self):
+        return self._play_order
     
     def do_selected(self):
         self.add_songs()
