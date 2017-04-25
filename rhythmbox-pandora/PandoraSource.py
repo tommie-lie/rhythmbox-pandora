@@ -65,6 +65,33 @@ class PandoraRadioStationSource(RB.StreamingSource):
         self.pack_start(self.entry_view, expand=True, fill=True, padding=0)        
 
         self.props.shell.append_display_page(self, parent)
+
+    def do_selected(self):
+        self.add_songs()
     
     def do_get_entry_view(self):
         return self.entry_view
+    
+    def do_try_playlist(self):
+        return False
+    
+    def add_songs(self):
+        db = self.props.shell.props.db
+        def commit_playlist(pl_future):
+            playlist = pl_future.result()
+            
+            entry_type = db.entry_type_get_by_name(PandoraEntryType.NAME)
+            for song in playlist:
+                entry = RB.RhythmDBEntry.new(db=db,
+                                             type=entry_type,
+                                             uri=song.audioUrl)
+                db.entry_set(entry, RB.RhythmDBPropType.TITLE, str(song.title))
+                db.entry_set(entry, RB.RhythmDBPropType.ARTIST, str(song.artist))
+                db.entry_set(entry, RB.RhythmDBPropType.ALBUM, str(song.album))
+                
+                self.query_model.add_entry(entry, -1)
+    
+            db.commit()
+        
+        playlist = self.props.plugin.worker.submit(self.station.get_playlist)
+        playlist.add_done_callback(util.from_main_thread_callback(commit_playlist))

@@ -26,6 +26,7 @@ class PandoraPlugin(GObject.Object, Peas.Activatable):
         
         p = pandora.Pandora()
         username, password = account.get_credentials()
+        p.set_audio_quality("highQuality")
         p.connect(client_keys['android-generic'],
                              username, password)
         return p
