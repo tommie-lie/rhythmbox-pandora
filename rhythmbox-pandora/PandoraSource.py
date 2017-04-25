@@ -1,4 +1,4 @@
-from gi.repository import GObject, RB, GLib
+from gi.repository import GObject, RB, GLib, Gtk
 
 from . import util
 
@@ -59,6 +59,8 @@ class PandoraRadioStationSource(RB.StreamingSource):
             raise ValueError("station argument must not be null")
         
         self.station = station
+        self.__songs = {}
+        
         et = shell.props.db.entry_type_get_by_name(PandoraEntryType.NAME)
         if not et:
             et = PandoraEntryType()
@@ -91,7 +93,11 @@ class PandoraRadioStationSource(RB.StreamingSource):
         return self._play_order
     
     def do_selected(self):
+        self.on_playing_song_changed_id = self.props.shell.props.shell_player.connect_after("playing-song-changed", self.song_changed)
         self.add_songs()
+    
+    def do_deselected(self):
+        self.props.shell.props.shell_player.disconnect(self.on_playing_song_changed_id)
     
     def do_get_playback_status(self, text, progress):
         return self.get_progress()
@@ -115,16 +121,41 @@ class PandoraRadioStationSource(RB.StreamingSource):
             
             entry_type = db.entry_type_get_by_name(PandoraEntryType.NAME)
             for song in playlist:
+                self.__songs[song.audioUrl] = song
                 entry = RB.RhythmDBEntry.new(db=db,
                                              type=entry_type,
                                              uri=song.audioUrl)
                 db.entry_set(entry, RB.RhythmDBPropType.TITLE, str(song.title))
                 db.entry_set(entry, RB.RhythmDBPropType.ARTIST, str(song.artist))
                 db.entry_set(entry, RB.RhythmDBPropType.ALBUM, str(song.album))
+                song.entry = entry
                 
                 self.query_model.add_entry(entry, -1)
-    
+            
             db.commit()
         
         playlist = self.props.plugin.worker.submit(self.station.get_playlist)
         playlist.add_done_callback(util.from_main_thread_callback(commit_playlist))
+    
+    def song_changed(self, player, current_entry):
+        if current_entry is not None:
+            # remove outdated entries from the database
+            for row in self.query_model:
+                entry = row[0]
+                song = self.__songs[entry.get_playback_uri()]
+                if not song.is_still_valid():
+                    self.__songs.pop(entry.get_playback_uri())
+                    self.props.shell.props.db.entry_delete(entry)
+            self.props.shell.props.db.commit()
+            
+            # verify that we have enough entries to play
+            # count remaining songs
+            remaining_songs = 0
+            iter = Gtk.TreeIter()
+            self.query_model.entry_to_iter(current_entry, iter)
+            while iter:
+                remaining_songs += 1
+                iter = self.query_model.iter_next(iter)
+
+            if remaining_songs < 3:
+                self.add_songs()
