@@ -65,12 +65,21 @@ class PandoraRadioStationSource(RB.StreamingSource):
         self.pack_start(self.entry_view, expand=True, fill=True, padding=0)        
 
         self.props.shell.append_display_page(self, parent)
-
+    
     def do_selected(self):
         self.add_songs()
     
+    def do_get_playback_status(self, text, progress):
+        return self.get_progress()
+    
     def do_get_entry_view(self):
         return self.entry_view
+    
+    def do_can_pause(self):
+        return True
+    
+    def do_handle_eos(self):
+        return RB.SourceEOFType.NEXT
     
     def do_try_playlist(self):
         return False
