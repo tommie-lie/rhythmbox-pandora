@@ -1,4 +1,4 @@
-from gi.repository import GObject, RB, GLib, Gtk
+from gi.repository import GObject, RB, GLib, Gtk, Gst
 
 from . import util
 
@@ -82,6 +82,7 @@ class PandoraRadioStationSource(RB.StreamingSource):
         self.entry_view.append_column(RB.EntryViewColumn.TITLE, True)
         self.entry_view.append_column(RB.EntryViewColumn.ARTIST, True)
         self.entry_view.append_column(RB.EntryViewColumn.ALBUM, True)
+        self.entry_view.append_column(RB.EntryViewColumn.DURATION, True)
         self.entry_view.set_model(self.props.query_model)
         self.entry_view.show_all()
         self.pack_start(self.entry_view, expand=True, fill=True, padding=0)        
@@ -139,6 +140,21 @@ class PandoraRadioStationSource(RB.StreamingSource):
     
     def song_changed(self, player, current_entry):
         if current_entry is not None:
+            # set the current song's duration time
+            song = self.__songs[current_entry.get_playback_uri()]
+            if not song.duration:
+                (ret, duration_ns) = player.props.player.props.playbin.query_duration(Gst.Format.TIME)
+                if ret:
+                    song.duration = duration_ns / 10**9
+                    self.props.shell.props.db.entry_set(current_entry, RB.RhythmDBPropType.DURATION, song.duration)
+                    self.props.shell.props.db.commit()
+                    
+                    # force updating the RBHeader widget
+                    self.props.shell.props.shell_player.handler_block(self.on_playing_song_changed_id)
+                    player.stop()
+                    player.play_entry(current_entry, self)
+                    self.props.shell.props.shell_player.handler_unblock(self.on_playing_song_changed_id)
+            
             # remove outdated entries from the database
             for row in self.query_model:
                 entry = row[0]
