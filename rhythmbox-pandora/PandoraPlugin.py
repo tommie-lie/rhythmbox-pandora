@@ -2,6 +2,7 @@ from gi.repository import GObject, Peas
 
 from .PandoraSource import PandoraSource
 from .PandoraAccount import PandoraAccount
+from .PandoraConfig import PandoraSettings
 from pithos import pandora
 
 from concurrent.futures import ThreadPoolExecutor, wait
@@ -29,12 +30,14 @@ class PandoraPlugin(GObject.Object, Peas.Activatable):
         
         account = PandoraAccount.get()
         username, password = account.get_credentials()
-        self.pandora.set_audio_quality("highQuality")
+        self.pandora.set_audio_quality(self.settings["audio-quality"])
         self.pandora.connect(client_keys['android-generic'],
                              username, password)
         self.emit("connected")
 
     def do_activate(self):
+        self.settings = PandoraSettings(self)
+        self.settings.connect("changed::audio-quality", self.on_audio_quality_changed)
         PandoraAccount.get().connect("credentials_changed", self.on_credentials_changed)
         self.source = PandoraSource(shell=self.object,
                                     plugin=self)
@@ -49,3 +52,6 @@ class PandoraPlugin(GObject.Object, Peas.Activatable):
         self.source = PandoraSource(shell=self.object,
                                     plugin=self)
         self.worker.submit(self.connect_pandora)
+    
+    def on_audio_quality_changed(self, settings, key):
+        self.pandora.set_audio_quality(settings["audio-quality"])

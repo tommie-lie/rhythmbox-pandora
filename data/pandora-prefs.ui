@@ -2,11 +2,34 @@
 <!-- Generated with glade 3.20.0 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
+  <object class="GtkListStore" id="audio-quality-model">
+    <columns>
+      <!-- column-name display -->
+      <column type="gchararray"/>
+      <!-- column-name value -->
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes">High</col>
+        <col id="1" translatable="yes">highQuality</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Medium</col>
+        <col id="1" translatable="yes">mediumQuality</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Low</col>
+        <col id="1" translatable="yes">lowQuality</col>
+      </row>
+    </data>
+  </object>
   <object class="GtkGrid" id="pandora-prefs">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="orientation">vertical</property>
     <property name="row_spacing">4</property>
+    <property name="column_spacing">6</property>
     <child>
       <object class="GtkLabel">
         <property name="visible">True</property>
@@ -59,6 +82,38 @@
       <packing>
         <property name="left_attach">1</property>
         <property name="top_attach">0</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkLabel">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">Audio _quality:</property>
+        <property name="use_underline">True</property>
+        <property name="justify">right</property>
+        <property name="mnemonic_widget">audio-quality-combobox</property>
+      </object>
+      <packing>
+        <property name="left_attach">0</property>
+        <property name="top_attach">2</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkComboBox" id="audio-quality-combobox">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="hexpand">True</property>
+        <property name="model">audio-quality-model</property>
+        <child>
+          <object class="GtkCellRendererText"/>
+          <attributes>
+            <attribute name="text">0</attribute>
+          </attributes>
+        </child>
+      </object>
+      <packing>
+        <property name="left_attach">1</property>
+        <property name="top_attach">2</property>
       </packing>
     </child>
   </object>

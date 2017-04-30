@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+	<schema id="org.gnome.rhythmbox.plugins.pandora" path="/org/gnome/rhythmbox/plugins/pandora/">
+		<key name="audio-quality" type="s">
+			<choices>
+				<choice value="highQuality" />
+				<choice value="mediumQuality" />
+				<choice value="lowQuality" />
+			</choices>
+			<default>"mediumQuality"</default>
+			<summary>Audio quality</summary>
+		</key> 
+	</schema>
+</schemalist>
