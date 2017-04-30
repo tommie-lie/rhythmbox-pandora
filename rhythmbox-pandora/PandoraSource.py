@@ -1,6 +1,7 @@
-from gi.repository import GObject, RB, GLib, Gtk, Gst
+from gi.repository import GObject, RB, GLib, Gtk, Gst, Gio
 
 from . import util
+import rb
 
 
 class PandoraEntryType(RB.RhythmDBEntryType):
@@ -13,8 +14,11 @@ class PandoraEntryType(RB.RhythmDBEntryType):
 
 class PandoraSource(RB.DisplayPage):
     def __init__(self, **kwargs):
+        rb.append_plugin_source_path(kwargs["plugin"], "data/icons")
+        icon = Gio.ThemedIcon.new("pandora-symbolic")
         super(PandoraSource, self).__init__(name="Pandora Radio",
-                                            **kwargs)
+                                               icon=icon,
+                                               **kwargs)
 
         group = RB.DisplayPageGroup.get_by_id("library")
         self.props.shell.append_display_page(self, group)
